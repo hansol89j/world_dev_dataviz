@@ -1,0 +1,208 @@
+---
+title: "World Development"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+    always_allow_html: yes
+---
+
+#Overview
+
+The World Happiness Report is a landmark survey of the state of global happiness. Thisreport includes leading experts across fields such as economics, national statistics, health, public policy and more that describe how measurements of well-being can be used effectively
+to assess the progress of nations. This report can be used by political leaders, civic groups, and political non-profit organizations to get the least idea in order to improve the welfare of people and which policies have to adjusted to the country. We also can know which countries or continents have highest happiness score and we can learn from them to improve our welfare related policy. The reports review the state of happiness in the world today and show how the new science of happiness explains personal and national variations in happiness.
+
+#Content
+
+The happiness scores and rankings use data from the Gallup World Poll. The scores are based on answers to the main life evaluation question asked in the poll. This question, known as the Cantril ladder, asks respondents to think of a ladder with the best possible life for them being a 10 and the worst possible life being a 0 and to rate their own current lives on that scale. The scores are from nationally representative samples for the years 2013-2016 and use the Gallup weights to make the estimates representative. The columns following the happiness score estimate the extent to which each of six factors – economic production, social support, life expectancy, freedom, absence of corruption, and generosity – contribute to making life evaluations higher in each country than they are in Dystopia, a hypothetical country that has values equal to the world’s lowest national averages for each of the six factors. They have no impact on the total score reported for each country, but they do explain why some countries rank higher than others.
+
+#Visualization
+
+##Introduction
+
+A lot of people saying that more goods we have, happier life we will live. Many people in the world measures happiness by property and materials we have. Could happiness of people in the world also measured by that? Let’s go over the data start from people’s trust in
+government.
+
+
+
+###Import Necessary Packages
+```{r}
+library(readr)
+library(tidyverse)
+library(plotly)
+```
+
+
+###Import Datasets
+```{r}
+country_stats <- read.csv("country_stats.csv")
+
+
+```
+
+
+###Import Happiness Dataset from 2016 to 2017 and eliminate unnecessary columns.
+```{r}
+df16 <- read.csv("2016.csv")
+d <- read.csv("2017.csv")
+summary(d)
+head(d)
+d <- d[,-c(4,5)]
+```
+
+###Join the two dataset files on "Country"
+```{r}
+colnames(country_stats)[1] <- "Country"
+
+d1 <- country_stats %>%
+  left_join(d, by = "Country") %>%
+  mutate(Country = factor(Country))
+
+```
+
+###Happiness score and trust in government
+```{r}
+ggplot(d1,aes(x=Happiness.Score,y=Trust..Government.Corruption.,color=continent,size=hdi))+
+  geom_point(alpha=0.6)+
+  labs(title="Happiness Score with Trust Government Corruption-2017") +
+  theme_minimal() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black")) +
+  ggsave("trust.png")
+```
+
+> African countries fall low in both Happiness and Government Trust. Conversely, American countries are far ahead in terms of happiness,but not in trust in government. However, we cannot confident that this can be related to happiness because there are still
+many tribes ruling local areas in Africa and a lot of people in the world still prefers provincial government system rather than the central government.
+
+###Relationship Between HDI and Happiness Score
+```{r}
+ggplot(d1, aes(x=hdi, y=Happiness.Score)) +
+  geom_point(aes(color=continent), size=2) +
+  geom_smooth(method="lm") +
+  labs(x = "HDI Score",
+       y = "Happiness Score",
+       title = "Are HDI countries happy countries?",
+       subtitle = "HDI and happiness by country in 2017") +
+  theme_minimal() +
+  theme(text = element_text(size=16), 
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black")) +
+  ggsave("hdi.png")
+```
+
+>HDI(Human Development Index) is a composite statistic (composite index) of life expectancy, education, and per capita income indicators, which are used to rank countries into four tiers of human development. According to this plot, a lot of African countries are in low both in Happiness Score and HDI. Most of the countries which possess higher happiness have higher HDI too.
+
+###Happinesses score across the continent
+```{r}
+ggplot(d1, aes(x=continent, y=Happiness.Score, fill=factor(continent))) +
+  geom_violin(alpha=0.6) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90, vjust=0.6),
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black")) + 
+  labs(title="Happiness Scores in Regions-2017",x="Continents",y="Score") +
+  ggsave("continent.png")
+```
+
+> Europe is the happiest continent so far, we should think about what and how make them so happy. Africa is in the last out of all five continents. Both America and Europe continents have high happiness scores constantly. It is clear that most developed countries are located in those two continents
+
+
+###Happiness score and GNI
+
+GNI(Gross National Income) is the total domestic and foreign output claimed by residents of
+a country.
+
+###GNI measures all income of a country’s residents and businesses, regardless of where it’s produced.
+```{r}
+g1 <- ggplot(d1, aes(x=log(gni), y=Happiness.Score)) +
+  geom_point(aes(color=continent),size=2) +
+  geom_smooth(method="lm") +
+  labs(x = "GNI Score",
+       y = "Happiness Score",
+       title = "Are GNI countries happy countries?",
+       subtitle = "GNI and happiness by country in 2017") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size=16),
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black")) +
+  ggsave("gni.png")
+  
+g2 <- ggplot(d1, aes(x=Generosity, y=Happiness.Score)) +
+  geom_point(aes(color=continent), size=2) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size=16))
+
+g3 <- ggplot(d1, aes(x=Freedom, y=Happiness.Score)) +
+  geom_point(aes(color=continent), size=2) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size=16))
+
+g4 <- ggplot(d1, aes(x=Health..Life.Expectancy., y=Happiness.Score)) +
+  geom_point(aes(color=continent), size=2) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(size=16))
+
+```
+
+> The countries which have higher GNI score tend to have higher happiness score. From this point, we can assume if wealth is related to happiness.
+
+
+###HDI vs GNI
+```{r}
+p <- plot_ly(
+  d1, x = ~hdi, y = ~gni,
+  text = ~paste("Country: ", Country),
+  color = ~hdi, size = ~hdi
+) %>% layout(xaxis=list(showgrid=F), yaxis=list(showgrid=F))
+p
+```
+
+> The plot that is outlying is Qatar. Even though it is claiming the highest GNI, its HDI is less than Norway, Singapore, and several other European countries.
+
+
+
+###Poverty and Happiness Score
+```{r}
+
+p1 <- plot_ly(d1, x=~population_below_poverty_line, y=~Happiness.Score,
+              text=~paste("Country: ", Country),
+              color = ~population_below_poverty_line, size = ~population_below_poverty_line)  %>% 
+  layout(xaxis=list(showgrid=F), yaxis=list(showgrid=F))
+p1
+```
+
+> Countries in the top happiness score are European countries. The lowest one is Syria which has the huge poverty compare to other countries. According to this chart, we could conclude that happiness can be measured by wealth. Let’s draw a plot chart to verify if our assumption is possibly correct.
+
+
+###Rich means more happiness?
+```{r}
+rich <- plot_ly(
+  d1, x= ~Economy..GDP.per.Capita., y= ~Happiness.Score,
+  text= ~paste("Country:", Country),
+  color= ~Economy..GDP.per.Capita., size=~Economy..GDP.per.Capita.
+) %>% layout(xaxis=list(showgrid=F), yaxis=list(showgrid=F))
+rich
+```
+
+> Per capita GDP is a measure of the total output of a country that takes the gross domestic product (GDP) and divides it by the number of people in that country. The per capita GDP is especially useful when comparing one country to another, because it shows the relative
+performance of the countries. Countries like Norway,Switzerland tops the list in both Economy per GDP and happiness quotient.
+
+
+#Description of Analysis
+Looking at the World Happiness Score in 2017, we can clearly conclude that the European nations, especially the northern Europe, and Switzerland has the highest score of happiness. Interestingly, happiness score was largely influenced by economy. There are few countries that have strong economy, but its human development index and other factors are not as high as the countries with highest happiness score. From the analysis of this dataset, we can know that European nations and other countries with stable economy and security tend to have higher score and wealth has large influence on happiness score. However, plots are showing that there are some politically and economically unstable countries also have relatively high scores than some developed countries. Therefore, we need to ask ourselves that is it really enough to look at the economic data and should we look at other cultural and social aspects as well? It is true that the best welfare system provides comforts and happiness to us, but it requires better economy in order to sustain that system. However, we also can hear news of people in poor countries that their happiness rate is higher than the most developed countries. Therefore, we should look further at the data with a different metric which would give us
+better insight about which fields give greatest impact on happiness score.
+
+
+#Conclusion
+European nations and other developed countries dominate the highest happiness score according to their economic situation. We can conclude that welfare system of those nations are stable and fair, but it requires better economy in order to sustain it. However, we
+definitely should look at some other metrics in order to acquire better insight because there are some economically unstable countries have higher score than developed countries.
+
+
